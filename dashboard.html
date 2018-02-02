@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>food engine</title>
+<link rel="shortcut icon"  href="tora_icon.ico" type="image/x-icon" />
+
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Tangerine">
+<style>
+body
+{
+	background-color: #B5410B;
+	padding:30px;
+}
+footer
+{
+	background-color: #EB540E;
+	height: 145px;
+	width: 100%;
+	padding: 20px;
+}
+table tr td
+{
+	border: 1px dotted #EB540E;
+}
+#tableContainer
+{
+	scroll-behavior: none;
+	overflow: auto;
+	border: 1px solid black;
+	width: 100%;
+}
+#titlePic
+{
+	float:right;
+	border: 1px solid black;
+}
+#titleBanner {
+	background-color: #EB540E;
+	height: 145px;
+	width: 100%;
+	padding: 20px;
+	overflow: hidden;
+}
+#titleWords
+{
+	float:left;
+	font-family: 'Tangerine', serif;
+	font-size: 100px;
+	margin: 0px;
+	padding: 20px;
+	padding-top: 25px;
+}
+#myInput {
+    background-image: url('searchicon.png'); /* Add a search icon to input */
+    background-position: 10px 12px; /* Position the search icon */
+    background-repeat: no-repeat; /* Do not repeat the icon image */
+    width: 100%; /* Full-width */
+    font-size: 16px; /* Increase font-size */
+
+    padding: 12px 20px 12px 40px; /* Add some padding */
+    border: 1px solid #ddd; /* Add a grey border */
+    margin-bottom: 12px; /* Add some space below the input */
+}
+#myTable {
+	border: 1px solid black;
+}
+
+/*horizontal navigation bar*/
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #6B2606;
+}
+
+nav li {
+    float: left;
+}
+
+nav li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+nav li a:hover {
+    background-color: #EB540E;
+}
+
+
+</style>
+
+</head>
+<body onkeydown="shortcutKeys(event)">
+<div style="padding-right:40px">
+<div id="titleBanner">
+<h2 id="titleWords">Food Engine</h2>
+<img id="titlePic" src="Science_Machine.png" />
+</div>
+</div>
+
+<nav>
+<ul>
+  <li><a class="active" href="meal plan website.html">Ingredient Search</a></li>
+  <li><a href="new recipe.html">Recipe List</a></li>
+  <li><a href="new ingredients.html">New Ingredient</a></li>
+  <li><a href="dashboard.html">Other Projects</a></li>
+</ul>
+</nav>
+
+<p>
+<form action="">
+<!--
+<input type="checkbox" id="ingredientBox" value="check me out" />ingredient <br>
+<input type="checkbox" id="myRecipeBox" value="check me out" />my recipes <br>
+<input type="checkbox" id="onlineRecipeBox" value="check me out" />online recipes
+-->
+</form>
+</p>
+
+<div style="padding-right:60px">
+<input type="text" id="myInput" onkeyup="searchList()" placeholder="Search for ingredients..">
+</div>
+<button id="toggleListen" onclick="voiceRecog()">Sort by Voice Command</button>
+&nbsp;&nbsp;&nbsp;
+<!--<a id="whatislink" href="dashboard.html">What is this?</a>-->
+<p></p>
+<div id="tableContainer">
+	<table id="myTable" >
+		<tr><th>ingredients</th><th>ingredientAmount</th><th>ingredientAmountType</th><th>ingredientUnitWeight</th><th>ingredientExp</th><th>remainingAmount</th><th>ingredientNote</th><th>ingredientPic</th></tr>
+	</table>
+</div>
+<hr>
+
+<!--
+<ol>
+<li> take audio/text input, search list</li>
+<li> return recipes by time to make, two lists for recipes with ingredients missing and all there.</li>
+<li> use TTS to make suggestions/act like an AI?</li>
+<li> this could help with formulating shopping lists you know... </li>
+</ol>
+-->
+<div style="padding-right:40px">
+<footer>
+<center><p>link to webpage:<br></p></center>
+</footer>
+</div>
+</body>
+</html>

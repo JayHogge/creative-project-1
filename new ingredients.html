@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>food engine</title>
+<link rel="shortcut icon"  href="tora_icon.ico" type="image/x-icon" />
+<script>
+//arrays for loaded data
+var categories = [];//ingredients,recipes, questions, etc. these are on separate dropdown-divs with tables, triggered by checkboxes
+var ingredients = [];
+var ingredientAmount = [];
+var ingredientAmountType = [];
+var ingredientUnitWeight = [];
+var remainingAmount = [];
+var ingredientExp = [];
+var ingredientNote = [];
+var ingredientPic = [];
+
+var recipes = [];//??? array of arrays/dictionaries - each item a list of ingredients AND their measurements
+var subCategoryLevel = [];//??? number of tabs, showing depth below
+var recipeReviews = [];//if i've made it, what did i think?
+var recipePic = [];
+
+
+//things to do when page loads
+window.onload = function()
+{
+	loadIngredientList();
+};
+
+//speech recognition
+function voiceRecog()
+{
+	var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
+	recognition.lang = 'en-US';
+	recognition.interimResults = false;
+	recognition.maxAlternatives = 5;
+	recognition.start();
+
+	recognition.onresult = function(event) {
+	    console.log('You said: ', event.results[0][0].transcript);
+	    document.getElementById("myInput").value = event.results[0][0].transcript;
+	    searchList();
+	};
+}
+
+//speech sythesizer
+function speak(){
+	var msg = new SpeechSynthesisUtterance('Hello World');
+	window.speechSynthesis.speak(msg);
+}
+
+
+//recipe analyzer. Used to tell user what recipes are available for the given ingredients
+//tells user what is missing in recipes that are close.
+function recipeAnalyzer()
+{
+	//traverse ingredients in this recipe
+	for(var i=0;i<recipes.length;i++)
+	{
+		for(var j=0;j<recipes[i].length;j++)
+		{
+			if(findIngredient(recipes[i][j]))
+				return false;//recipe incomplete. remember how much is missing for later
+			else
+				return true; //recipe item found. continue. when all are found, add to complete list.
+
+
+///////////////////////////////////i was working on this function
+
+
+		}
+	}
+	return false;
+}
+
+//ingredient search for recipe analyzer
+function findIngredient(theChosen)
+{
+	for(var i=0;i<ingredients.length;i++)
+	{
+		if(ingredients[i] == theChosen)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+
+//ingredient search for user
+function searchList() {
+  // Declare variables 
+  var input, filter, table, tr, td, i;
+  input = document.getElementById("myInput");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("myTable");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[0];
+    if (td) {
+      if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    } 
+  }
+}
+
+
+//loads listings when webpage loads
+function loadIngredientList(){
+	var importedLines;
+	var decrypt = false;
+	var client = new XMLHttpRequest();
+	client.open('GET', '/meal plan website ingredients list.txt');
+	client.onreadystatechange = function() {
+		if (client.readyState == 4 && client.status == 200)
+		{
+			//prints entire loaded file to console
+			//console.log(client.responseText);
+			var importedText = client.responseText;
+			importedLines = importedText.split("\r\n");
+	//importedLines.length
+			for(var i=0;i<100;i++)
+			{
+
+				ingredients[i] ="";
+
+				// if(i == 186)
+				// {	
+				// 	console.log("line " +i+" is "+importedLines[i]);
+				// 	var index;
+				// 	//debugging script for investigating newline and c.r. in string comparison
+				// 	for (index = 0; index < importedLines[i].length; ++index) {
+				// 	    console.log("char " + index + ": " + importedLines[i].charCodeAt(index));
+				// 	}
+				// }
+				if(importedLines[i] == "*/////START/////")
+				{
+					console.log("start line is" +i);
+					decrypt = true;
+				}
+				if(decrypt == true)
+				{
+					//extract ingredient info here. then fill table data
+					if(importedLines[i].substring(0,2) != "//" && importedLines[i] != "")
+					{
+						//check for things at the start of the line
+						if(importedLines[i].substring(0,1) == "*")
+						{
+							categories.push(importedLines[i].substring(1));
+						}
+						// else if(importedLines[i].substring(0,1) == "	")
+						// {
+						// 	//subCategory of lines before
+						// }
+						else
+						{
+							//break apart data within each line
+							var currentWord = importedLines[i].split(" ");
+							for(var j=0;j<currentWord.length;j++)
+							{
+								console.log("line "+i+ ": "+currentWord[j]);
+
+								//a number amount indicates either
+								//	quantity (next word is quantity type)
+								//	measurement of weight (no next word)
+								if(!isNaN(currentWord[j].substring(0,1)))
+								{
+									
+									//measurement of weight
+									if(isNaN(currentWord[j].slice(-1)))
+									{
+										ingredientUnitWeight[i] = currentWord[j];
+										//console.log("weight: "+ingredientUnitWeight[i]);
+									}
+									else
+									{	
+										//quantity number
+										ingredientAmount[i] = currentWord[j];
+
+										//quantity type
+										if(currentWord[j+1] != undefined)
+										{
+											
+											ingredientAmountType[i] = currentWord[j+1];
+											//console.log("!! "+ingredientAmount[j]);
+											//currentWord[j] += " "+currentWord[j+1];
+											j++;
+										}
+										else
+										{//no quantity type given for number
+											//console.log('no category for amount!')
+											ingredientAmountType[i] = "thinguses";
+										}
+									}
+									
+									
+								}
+								//a string indicates either
+								//	ingredient (perhaps several next words included)
+								//	expiration date
+								//	special char ie paren,asterisk 
+								//	picture url
+								//	note
+								else 
+								{
+									//paren = remaining amount
+									if(currentWord[j].substring(0,1) == "(")
+									{
+/////->										//group together phrases in parenthesis
+										remainingAmount[i] = currentWord[j].substring(1);
+										while(currentWord[j].slice(-1)!=")")
+										{
+											j++;
+											remainingAmount[i] += " "+currentWord[j]+" ";
+										}
+										remainingAmount[i] += currentWord[j].slice(0,-1);
+									}
+									//asterisk = category
+									else if(currentWord[j].substring(0,1) == "*")
+									{
+										category[i] = currentWord[j].substring(1);
+									}
+									//expiration date
+									else if(currentWord[j].substring(0,3) == "exp")
+									{
+/////->read dates?						
+										ingredientExp[i] = currentWord[j].substring(3);
+									}
+									else
+									//ingredient - collect words until EOL, number, paren, etc
+									{	
+/////->										
+										
+										//while(currentWord[j+1].slice(-1) != undefined)
+										//{
+										//	j++;
+										//	ingredients[i] += currentWord[j];
+										//}
+										ingredients[i] += currentWord[j]+" ";
+									}
+								}
+							}
+							//add data to webpage (ingredient,amount,amountType,note,picture)
+							document.getElementById('myTable').innerHTML += '<tr><td>'+ingredients[i]+'</td><td>'+ingredientAmount[i]+'</td><td>'+ingredientAmountType[i]+'</td><td>'+ingredientUnitWeight[i]+'</td><td>'+ingredientExp[i]+'</td><td>'+remainingAmount[i]+'</td><td>'+ingredientNote[i]+'</td><td>'+ingredientPic[i]+'</td></tr>';
+						}
+					}
+				}
+			}
+			decrypt = false;
+		}
+	}
+	client.send();
+}
+
+
+function shortcutKeys(event)
+{
+	//console.log(event.keyCode);
+	if(event.keyCode == 13) //enter
+	{
+		document.getElementById("myInput").value = "";
+	}
+	if(event.keyCode == 73 && event.keyCode == 17) //i for ingredient checkbox
+	{
+		if(document.getElementById("ingredientBox").checked)
+		{
+			document.getElementById("ingredientBox").checked = false;
+		} 
+		else
+		{
+			document.getElementById("ingredientBox").checked = true;
+		}		
+	}
+	if(event.keyCode == 77 && event.keyCode == 17) //m for my recipes checkbox
+	{
+		if(document.getElementById("myRecipeBox").checked)
+		{
+			document.getElementById("myRecipeBox").checked = false;
+		} 
+		else
+		{
+			document.getElementById("myRecipeBox").checked = true;
+		}		
+	}
+	if(event.keyCode == 79 && event.keyCode == 17) //o for online recipes checkbox
+	{
+		if(document.getElementById("onlineRecipeBox").checked)
+		{
+			document.getElementById("onlineRecipeBox").checked = false;
+		} 
+		else
+		{
+			document.getElementById("onlineRecipeBox").checked = true;
+		}
+	}
+}
+
+//load text file line by line (from client tho)
+//<input type="file" name="file" id="file">
+/*
+document.getElementById('file').onchange = function(){
+
+  var file = this.files[0];
+
+  var reader = new FileReader();
+  reader.onload = function(progressEvent){
+    // Entire file
+    console.log(this.result);
+
+    // By lines
+    var lines = this.result.split('\n');
+    for(var line = 0; line < lines.length; line++){
+      console.log(lines[line]);
+    }
+  };
+  reader.readAsText(file);
+};
+*/
+</script>
+<style>
+#titleBanner {
+	background-color: #dddddd;
+	height: 50px;
+	width: 100%;
+	padding: 20px;
+}
+#myInput {
+    background-image: url('searchicon.png'); /* Add a search icon to input */
+    background-position: 10px 12px; /* Position the search icon */
+    background-repeat: no-repeat; /* Do not repeat the icon image */
+    width: 100%; /* Full-width */
+    font-size: 16px; /* Increase font-size */
+    padding: 12px 20px 12px 40px; /* Add some padding */
+    border: 1px solid #ddd; /* Add a grey border */
+    margin-bottom: 12px; /* Add some space below the input */
+}
+#myTable {
+	border: 1px solid black;
+}
+</style>
+</head>
+<body onkeydown="shortcutKeys(event)">
+<div id="titleBanner">
+<h2>Food Engine</h2>
+</div>
+
+<p>
+<form action="">
+<input type="checkbox" id="ingredientBox" value="check me out"/>ingredient <br>
+<input type="checkbox" id="myRecipeBox" value="check me out"/>my recipes <br>
+<input type="checkbox" id="onlineRecipeBox" value="check me out"/>online recipes
+</form>
+</p>
+
+<input type="text" id="myInput" onkeyup="searchList()" placeholder="Search for ingredients..">
+<button id="toggleListen" onclick="voiceRecog()">Toggle Listen</button>
+<table id="myTable">
+	<tr><th>ingredients</th><th>ingredientAmount</th><th>ingredientAmountType</th><th>ingredientUnitWeight</th><th>ingredientExp</th><th>remainingAmount</th><th>ingredientNote</th><th>ingredientPic</th></tr>
+</table>
+
+<hr>
+
+<ol>
+<li> take audio/text input, search list</li>
+<li> return recipes by time to make, two lists for recipes with ingredients missing and all there.</li>
+<li> use TTS to make suggestions/act like an AI?</li>
+<li> this could help with formulating shopping lists you know... </li>
+</ol>
+
+</body>
+</html>
